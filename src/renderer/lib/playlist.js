@@ -3,85 +3,99 @@ module.exports = {
   getNextIndex,
   hasPrevious,
   getPreviousIndex,
-  getCurrentLocalURL
-}
+  getCurrentLocalURL,
+};
 
-const TorrentSummary = require('./torrent-summary')
-const TorrentPlayer = require('./torrent-player')
+const TorrentSummary = require("./torrent-summary");
+const TorrentPlayer = require("./torrent-player");
 
 const cache = {
   infoHash: null,
   previousIndex: null,
   currentIndex: null,
-  nextIndex: null
+  nextIndex: null,
+};
+
+function hasNext(state) {
+  updateCache(state);
+  return cache.nextIndex !== null;
 }
 
-function hasNext (state) {
-  updateCache(state)
-  return cache.nextIndex !== null
+function getNextIndex(state) {
+  updateCache(state);
+  return cache.nextIndex;
 }
 
-function getNextIndex (state) {
-  updateCache(state)
-  return cache.nextIndex
+function hasPrevious(state) {
+  updateCache(state);
+  return cache.previousIndex !== null;
 }
 
-function hasPrevious (state) {
-  updateCache(state)
-  return cache.previousIndex !== null
+function getPreviousIndex(state) {
+  updateCache(state);
+  return cache.previousIndex;
 }
 
-function getPreviousIndex (state) {
-  updateCache(state)
-  return cache.previousIndex
-}
-
-function getCurrentLocalURL (state) {
+function getCurrentLocalURL(state) {
   return state.server
-    ? state.server.localURL + '/' + state.playing.fileIndex
-    : ''
+    ? state.server.localURL + "/" + state.playing.fileIndex
+    : "";
 }
 
-function updateCache (state) {
-  const infoHash = state.playing.infoHash
-  const fileIndex = state.playing.fileIndex
+function updateCache(state) {
+  const infoHash = state.playing.infoHash;
+  const fileIndex = state.playing.fileIndex;
 
   if (infoHash === cache.infoHash) {
     switch (fileIndex) {
       case cache.currentIndex:
-        return
+        return;
       case cache.nextIndex:
-        cache.previousIndex = cache.currentIndex
-        cache.currentIndex = fileIndex
-        cache.nextIndex = findNextIndex(state)
-        return
+        cache.previousIndex = cache.currentIndex;
+        cache.currentIndex = fileIndex;
+        cache.nextIndex = findNextIndex(state);
+        return;
       case cache.previousIndex:
-        cache.previousIndex = findPreviousIndex(state)
-        cache.nextIndex = cache.currentIndex
-        cache.currentIndex = fileIndex
-        return
+        cache.previousIndex = findPreviousIndex(state);
+        cache.nextIndex = cache.currentIndex;
+        cache.currentIndex = fileIndex;
+        return;
     }
   } else {
-    cache.infoHash = infoHash
+    cache.infoHash = infoHash;
   }
 
-  cache.previousIndex = findPreviousIndex(state)
-  cache.currentIndex = fileIndex
-  cache.nextIndex = findNextIndex(state)
+  cache.previousIndex = findPreviousIndex(state);
+  cache.currentIndex = fileIndex;
+  cache.nextIndex = findNextIndex(state);
 }
 
-function findPreviousIndex (state) {
-  const files = TorrentSummary.getByKey(state, state.playing.infoHash).files
+function findPreviousIndex(state) {
+  const files = TorrentSummary.getByKey(
+    state,
+    state.playing.infoHash,
+  ).files.sort(function(a, b) {
+    return a.name > b.name ? 1 : b.name > a.name ? -1 : 0;
+  });
+
   for (let i = state.playing.fileIndex - 1; i >= 0; i--) {
-    if (TorrentPlayer.isPlayable(files[i])) return i
+    if (TorrentPlayer.isPlayable(files[i])) return i;
   }
-  return null
+  return null;
 }
 
-function findNextIndex (state) {
-  const files = TorrentSummary.getByKey(state, state.playing.infoHash).files
+function findNextIndex(state) {
+  const files = TorrentSummary.getByKey(
+    state,
+    state.playing.infoHash,
+  ).files.sort(function(a, b) {
+    return a.name > b.name ? 1 : b.name > a.name ? -1 : 0;
+  });
+
+  console.log(files);
+
   for (let i = state.playing.fileIndex + 1; i < files.length; i++) {
-    if (TorrentPlayer.isPlayable(files[i])) return i
+    if (TorrentPlayer.isPlayable(files[i])) return i;
   }
-  return null
+  return null;
 }
