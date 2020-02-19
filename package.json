@@ -45,6 +45,7 @@
     "simple-concat": "^1.0.0",
     "simple-get": "^3.0.3",
     "srt-to-vtt": "^1.1.1",
+    "torrent-search-api": "^2.0.3",
     "vlc-command": "^1.0.1",
     "webtorrent": "0.x",
     "winreg": "^1.2.0",
